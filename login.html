@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TD3N8RYNYE"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TD3N8RYNYE');
+</script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول – StudyCalc</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">
+      <span class="logo-icon">🎓</span>
+      Study<span class="gold">Calc</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="{{ url_for('index') }}">الرئيسية</a></li>
+      <li><a href="{{ url_for('gpa') }}">حاسبة GPA</a></li>
+      <li><a href="{{ url_for('budget') }}">حاسبة الميزانية</a></li>
+      <li><a href="{{ url_for('study') }}">حاسبة الدراسة</a></li>
+      <a href="{{ url_for('reach_us') }}">تواصل معنا</a>
+    </ul>
+    <a href="{{ url_for('contact') }}" class="nav-cta">سجّل الآن ✦</a>
+  </nav>
+
+  <section class="page-header">
+    <div class="hero-badge">✦ تسجيل الدخول</div>
+    <h1>أهلاً بعودتك<br>إلى <em>StudyCalc</em></h1>
+    <p>سجّل دخولك للوصول إلى نتائجك المحفوظة</p>
+  </section>
+
+  <section class="form-section">
+    <div class="form-box">
+
+      <div class="form-info">
+        <h2>مرحباً بك مجدداً</h2>
+        <p>سجّل دخولك واستمر من حيث توقفت</p>
+        <ul class="benefit-list">
+          <li>عرض نتائج GPA المحفوظة</li>
+          <li>متابعة ميزانيتك الشهرية</li>
+          <li>الوصول لجداول المذاكرة</li>
+          <li>تتبع تطورك الأكاديمي</li>
+        </ul>
+        <div style="margin-top:28px;">
+          <p style="color:rgba(255,255,255,0.65);font-size:13px;">ما عندك حساب؟</p>
+          <a href="{{ url_for('contact') }}"
+             style="color:var(--gold);font-weight:800;font-size:14px;text-decoration:none;">
+            أنشئ حساباً مجانياً ←
+          </a>
+        </div>
+      </div>
+
+      <div class="form-fields">
+        <h3>تسجيل الدخول</h3>
+
+        <div class="field">
+          <label>البريد الإلكتروني *</label>
+          <input type="email" id="login-email" class="field-input" placeholder="example@uqu.edu.sa">
+          <div class="error-hint" id="login-email-error"></div>
+        </div>
+
+        <div class="field">
+          <label>كلمة المرور *</label>
+          <input type="password" id="login-password" class="field-input" placeholder="أدخل كلمة المرور">
+          <div class="error-hint" id="login-password-error"></div>
+        </div>
+
+        <button class="submit-btn" onclick="submitLogin()">تسجيل الدخول ✦</button>
+        <div id="login-msg" class="success-msg"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo">🎓 Study<span class="gold">Calc</span></div>
+        <p>منصة مجانية تساعد طلاب الجامعة على إدارة حياتهم الأكاديمية</p>
+      </div>
+      <div class="footer-col">
+        <h4>الأدوات</h4>
+        <a href="{{ url_for('gpa') }}">حاسبة GPA</a>
+        <a href="{{ url_for('budget') }}">حاسبة الميزانية</a>
+        <a href="{{ url_for('study') }}">حاسبة المذاكرة</a>
+      </div>
+    <div class="footer-col">
+  <h4>المنصة</h4>
+  <a href="{{ url_for('reach_us') }}">تواصل معنا</a>
+  <a href="{{ url_for('dashboard') }}">لوحة التحكم</a>
+  <a href="{{ url_for('quiz') }}">اختبر نفسك</a>
+</div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 StudyCalc – جميع الحقوق محفوظة</p>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

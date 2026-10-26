@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard – StudyCalc</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.page-header {
+  background:linear-gradient(145deg,#0D1B40,var(--blue));
+  padding:32px 40px 28px;
+}
+.header-row {
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;
+}
+.header-row h1 { color:white;font-size:26px;font-weight:900; }
+.header-row h1 em { color:var(--gold);font-style:normal; }
+.header-badge {
+  background:rgba(212,160,23,0.18);border:1px solid rgba(212,160,23,0.4);
+  color:var(--gold);padding:5px 16px;border-radius:20px;font-size:12px;font-weight:700;
+}
+.summary { display:flex;gap:14px; }
+.summary-card {
+  background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.15);
+  border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:12px;flex:1;
+  transition:.2s;
+}
+.summary-card:hover { background:rgba(255,255,255,0.15); }
+.summary-icon {
+  width:40px;height:40px;border-radius:10px;
+  background:rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+.summary-num { color:white;font-size:22px;font-weight:900;line-height:1; }
+.summary-lbl { color:rgba(255,255,255,0.65);font-size:12px;font-weight:600;margin-top:2px; }
+
+.dashboard {
+  padding:28px 40px 40px;
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;
+  max-width:1100px;margin:0 auto;
+}
+.dash-card {
+  background:white;border-radius:18px;
+  box-shadow:0 4px 20px rgba(27,58,140,0.08);
+  overflow:hidden;transition:.2s;
+}
+.dash-card:hover { box-shadow:0 8px 32px rgba(27,58,140,0.14);transform:translateY(-2px); }
+.dash-header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px 14px;border-bottom:1px solid var(--gray-border);
+}
+.dash-title { font-size:15px;font-weight:900;color:var(--text); }
+.dash-badge { font-size:11px;color:var(--muted);font-weight:700; }
+.dash-body { padding:18px 22px; }
+
+.countdown-list { display:flex;flex-direction:column;gap:10px;margin-bottom:14px; }
+.countdown-item {
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--gray);border-radius:12px;padding:12px 16px;
+  transition:.15s;
+}
+.countdown-item:hover { background:var(--blue-light); }
+.countdown-name { font-size:14px;font-weight:700;color:var(--text); }
+.days-badge { padding:4px 14px;border-radius:20px;font-size:12px;font-weight:800; }
+.days-red    { background:#FEF2F2;color:#DC2626; }
+.days-orange { background:#FFF7ED;color:#D97706; }
+.days-green  { background:#DCFCE7;color:#16A34A; }
+.add-row { display:flex;gap:8px; }
+.add-input {
+  flex:1;background:var(--gray);border:2px solid var(--gray-border);
+  border-radius:10px;padding:9px 14px;font-size:13px;
+  font-family:'Cairo',sans-serif;color:var(--text);outline:none;transition:.2s;
+}
+.add-input:focus { border-color:var(--blue);background:var(--blue-light); }
+.add-btn-sm {
+  background:var(--blue);color:white;border:none;border-radius:10px;
+  padding:9px 16px;font-size:13px;font-weight:700;
+  font-family:'Cairo',sans-serif;cursor:pointer;transition:.2s;
+}
+.add-btn-sm:hover { background:var(--blue-mid); }
+.exam-date-input {
+  background:var(--gray);border:2px solid var(--gray-border);
+  border-radius:10px;padding:9px 14px;font-size:13px;
+  font-family:'Cairo',sans-serif;color:var(--text);outline:none;
+  width:100%;margin-top:8px;transition:.2s;
+}
+.exam-date-input:focus { border-color:var(--blue);background:var(--blue-light); }
+
+.planner-input {
+  width:100%;background:var(--gray);border:2px solid var(--gray-border);
+  border-radius:10px;padding:10px 14px;font-size:13px;
+  font-family:'Cairo',sans-serif;color:var(--text);outline:none;
+  margin-bottom:10px;transition:.2s;
+}
+.planner-input:focus { border-color:var(--blue);background:var(--blue-light); }
+.planner-row { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px; }
+.planner-row .planner-input { margin-bottom:0; }
+.gen-btn {
+  width:100%;background:linear-gradient(135deg,var(--gold),#f5c842);
+  color:#1a1000;border:none;border-radius:11px;padding:14px;
+  font-size:15px;font-weight:800;font-family:'Cairo',sans-serif;cursor:pointer;
+  box-shadow:0 4px 16px rgba(212,160,23,0.35);margin-bottom:14px;
+  transition:.2s;
+}
+.gen-btn:hover { transform:translateY(-1px);box-shadow:0 6px 20px rgba(212,160,23,0.45); }
+.plan-day {
+  display:flex;align-items:center;gap:10px;
+  background:var(--gray);border-radius:10px;padding:10px 14px;margin-bottom:8px;
+}
+.plan-lbl { font-size:12px;font-weight:800;color:var(--blue);min-width:50px; }
+.plan-bar { flex:1;height:8px;background:var(--gray-border);border-radius:4px;overflow:hidden; }
+.plan-fill { height:100%;border-radius:4px;background:linear-gradient(90deg,var(--blue-mid),var(--blue)); }
+.plan-h { font-size:12px;font-weight:800;color:var(--text);min-width:28px; }
+
+.streak-wrap { text-align:center;padding:8px 0 14px; }
+.streak-big { font-size:56px;font-weight:900;color:var(--blue);line-height:1; }
+.streak-sub { font-size:14px;color:var(--muted);font-weight:600;margin-top:4px; }
+.streak-row { display:flex;justify-content:center;gap:6px;margin-top:16px;margin-bottom:14px; }
+.s-dot {
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;
+  transition:.2s;
+}
+.s-done  { background:var(--blue);color:white; }
+.s-today { background:var(--gold);color:#1a1000; }
+.s-empty { background:var(--gray-border);color:var(--muted); }
+.streak-tip {
+  background:var(--blue-light);border-radius:10px;padding:10px 14px;
+  font-size:12px;font-weight:700;color:var(--blue);text-align:center;margin-bottom:14px;
+}
+.checkin-btn {
+  width:100%;background:linear-gradient(135deg,#16A34A,#22C55E);
+  color:white;border:none;border-radius:11px;padding:14px;
+  font-size:15px;font-weight:800;font-family:'Cairo',sans-serif;cursor:pointer;
+  transition:.2s;box-shadow:0 4px 14px rgba(22,163,74,0.30);
+}
+.checkin-btn:hover { transform:translateY(-1px);box-shadow:0 6px 18px rgba(22,163,74,0.40); }
+.checkin-btn:disabled { background:var(--gray-border);color:var(--muted);cursor:not-allowed;transform:none;box-shadow:none; }
+
+.points-guide {
+  background:var(--gold-light);border:1px solid rgba(212,160,23,0.3);
+  border-radius:12px;padding:12px 16px;margin-bottom:14px;
+}
+.points-guide-title { font-size:12px;font-weight:800;color:var(--gold);margin-bottom:8px; }
+.points-grid { display:grid;grid-template-columns:1fr 1fr;gap:4px 16px; }
+.points-row { display:flex;justify-content:space-between;font-size:11px;color:var(--text); }
+.points-val { font-weight:800;color:var(--blue); }
+
+/* LEADERBOARD — محسّن */
+.leader-list { display:flex;flex-direction:column;gap:8px; }
+.leader-item {
+  display:flex;align-items:center;gap:12px;
+  background:var(--gray);border-radius:12px;padding:14px 16px;
+  transition:.2s;
+}
+.leader-item:hover { background:var(--blue-light); }
+.leader-item.me {
+  background:var(--blue-light);
+  border:2px solid var(--blue);
+}
+.leader-rank { font-size:20px;min-width:28px;text-align:center; }
+.leader-avatar {
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--blue-mid));
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-size:16px;font-weight:900;flex-shrink:0;
+}
+.leader-info { flex:1; }
+.leader-name { font-size:15px;font-weight:900;color:var(--text); }
+.leader-pts-wrap {
+  display:flex;flex-direction:column;align-items:flex-end;gap:4px;
+}
+.leader-pts {
+  font-size:20px;font-weight:900;color:var(--blue);line-height:1;
+}
+.leader-pts-lbl {
+  font-size:11px;color:var(--muted);font-weight:600;
+}
+.leader-bar-w { display:flex;align-items:center;gap:6px; }
+.leader-bar { width:60px;height:5px;background:var(--gray-border);border-radius:3px;overflow:hidden; }
+.leader-bar-f { height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),#f5c842); }
+
+.msg-box {
+  text-align:center;padding:10px;border-radius:10px;
+  font-size:13px;font-weight:700;margin-top:10px;min-height:20px;
+}
+.msg-success { background:#DCFCE7;color:#16A34A; }
+.msg-error   { background:#FEF2F2;color:#DC2626; }
+
+/* navbar user */
+.nav-user {
+  display:flex;align-items:center;gap:8px;
+  color:white;font-size:13px;font-weight:700;
+}
+.nav-user-avatar {
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),#f5c842);
+  display:flex;align-items:center;justify-content:center;
+  color:#1a1000;font-size:13px;font-weight:900;
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">
+    <span class="logo-icon">🎓</span>
+    Study<span class="gold">Calc</span>
+  </div>
+  <ul class="nav-links">
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="toggleMenu()"></div>
+    <li><a href="{{ url_for('index') }}">الرئيسية</a></li>
+    <li><a href="{{ url_for('gpa') }}">حاسبة GPA</a></li>
+    <li><a href="{{ url_for('budget') }}">حاسبة الميزانية</a></li>
+    <li><a href="{{ url_for('study') }}">حاسبة الدراسة</a></li>
+    <li><a href="{{ url_for('dashboard') }}" class="active">Dashboard</a></li>
+  </ul>
+
+  <!-- اسم المستخدم في الـ navbar -->
+  {% if session.get('user_name') %}
+  <div class="nav-user">
+    <div class="nav-user-avatar">{{ session['user_name'][0] }}</div>
+    <span>{{ session['user_name'] }}</span>
+    <a href="{{ url_for('logout') }}"
+       style="color:rgba(255,255,255,0.6);font-size:12px;margin-right:4px;text-decoration:none;">
+      خروج
+    </a>
+  </div>
+  {% else %}
+  <a href="{{ url_for('contact') }}" class="nav-cta">سجّل الآن ✦</a>
+  {% endif %}
+</nav>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div class="header-row">
+    <h1>لوحة التحكم <em>الذكية</em></h1>
+    <div class="header-badge" id="welcome-badge">مرحباً ✦</div>
+  </div>
+  <div class="summary">
+    <div class="summary-card">
+      <div class="summary-icon">📋</div>
+      <div>
+        <div class="summary-num" id="exams-count">–</div>
+        <div class="summary-lbl">اختبارات قادمة</div>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon">🔥</div>
+      <div>
+        <div class="summary-num" id="streak-count">–</div>
+        <div class="summary-lbl">أيام متواصلة</div>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon">⭐</div>
+      <div>
+        <div class="summary-num" id="points-count">–</div>
+        <div class="summary-lbl">نقطة مكتسبة</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard">
+
+  <!-- 1. EXAM COUNTDOWN -->
+  <div class="dash-card">
+    <div class="dash-header">
+      <div class="dash-title">⏰ العد التنازلي للاختبارات</div>
+      <div class="dash-badge">+10 نقاط لكل اختبار</div>
+    </div>
+    <div class="dash-body">
+      <div class="countdown-list" id="exams-list">
+        <div style="text-align:center;color:var(--muted);font-size:13px;padding:10px;">
+          جاري التحميل...
+        </div>
+      </div>
+      <div class="add-row" style="flex-direction:column;gap:8px;">
+        <input class="add-input" id="exam-name" placeholder="اسم المادة">
+        <input class="exam-date-input" id="exam-date" type="date">
+        <button class="add-btn-sm" onclick="addExam()" style="width:100%;">
+          ＋ أضف اختبار
+        </button>
+      </div>
+      <div id="exam-msg" class="msg-box"></div>
+    </div>
+  </div>
+
+  <!-- 2. STUDY PLANNER -->
+  <div class="dash-card">
+    <div class="dash-header">
+      <div class="dash-title">📅 مخطط المذاكرة الذكي</div>
+      <div class="dash-badge">+15 نقاط لكل خطة</div>
+    </div>
+    <div class="dash-body">
+      <input class="planner-input" id="plan-subject" placeholder="اسم المادة">
+      <div class="planner-row">
+        <input class="planner-input" id="plan-date" type="date">
+        <input class="planner-input" id="plan-hours" type="number"
+               placeholder="ساعات يومياً" min="1" max="12">
+      </div>
+      <button class="gen-btn" onclick="generatePlan()">⚡ ولّد جدول المذاكرة</button>
+      <div id="plan-output"></div>
+    </div>
+  </div>
+
+  <!-- 3. STREAK -->
+  <div class="dash-card">
+    <div class="dash-header">
+      <div class="dash-title">🔥 سلسلة المذاكرة</div>
+      <div class="dash-badge">+10 نقاط bonus لكل يوم إضافي</div>
+    </div>
+    <div class="dash-body">
+      <div class="streak-wrap">
+        <div class="streak-big" id="streak-num">0</div>
+        <div class="streak-sub">يوم متواصل</div>
+        <div class="streak-row" id="streak-dots"></div>
+        <div class="streak-tip" id="streak-tip">
+          سجّل يومك الآن واكسب نقاطك!
+        </div>
+      </div>
+      <button class="checkin-btn" id="checkin-btn" onclick="doCheckin()">
+        ✓ سجّل يوم مذاكرة اليوم — +20 نقطة
+      </button>
+      <div id="checkin-msg" class="msg-box"></div>
+    </div>
+  </div>
+
+  <!-- 4. LEADERBOARD -->
+  <div class="dash-card">
+    <div class="dash-header">
+      <div class="dash-title">🏆 لوحة المتصدرين</div>
+      <div class="dash-badge">Top 5</div>
+    </div>
+    <div class="dash-body">
+      <div class="points-guide">
+        <div class="points-guide-title">✦ كيف تكسب نقاطك؟</div>
+        <div class="points-grid">
+          <div class="points-row">
+            <span>تسجيل دخول يومي</span>
+            <span class="points-val">+5</span>
+          </div>
+          <div class="points-row">
+            <span>إضافة اختبار</span>
+            <span class="points-val">+10</span>
+          </div>
+          <div class="points-row">
+            <span>إنشاء خطة مذاكرة</span>
+            <span class="points-val">+15</span>
+          </div>
+          <div class="points-row">
+            <span>إكمال يوم دراسة</span>
+            <span class="points-val">+20</span>
+          </div>
+          <div class="points-row">
+            <span>Streak يوم إضافي</span>
+            <span class="points-val">+10 🎁</span>
+          </div>
+        </div>
+      </div>
+      <div class="leader-list" id="leaderboard-list">
+        <div style="text-align:center;color:var(--muted);font-size:13px;padding:10px;">
+          جاري التحميل...
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="logo">🎓 Study<span class="gold">Calc</span></div>
+      <p>منصة مجانية تساعد طلاب الجامعة على إدارة حياتهم الأكاديمية</p>
+    </div>
+    <div class="footer-col">
+      <h4>الأدوات</h4>
+      <a href="{{ url_for('gpa') }}">حاسبة GPA</a>
+      <a href="{{ url_for('budget') }}">حاسبة الميزانية</a>
+      <a href="{{ url_for('study') }}">حاسبة المذاكرة</a>
+    </div>
+<div class="footer-col">
+  <h4>المنصة</h4>
+  <a href="{{ url_for('reach_us') }}">تواصل معنا</a>
+  <a href="{{ url_for('dashboard') }}">لوحة التحكم</a>
+  <a href="{{ url_for('quiz') }}">اختبر نفسك</a>
+</div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 StudyCalc – جميع الحقوق محفوظة</p>
+  </div>
+</footer>
+
+<script>
+let myName = '';
+let maxPoints = 1;
+
+async function loadDashboard() {
+  try {
+    const res  = await fetch('/dashboard-data');
+    const data = await res.json();
+    if (!data.success) return;
+
+    myName = data.user_name;
+    document.getElementById('welcome-badge').textContent = `مرحباً ${myName} ✦`;
+    document.getElementById('exams-count').textContent   = data.exams.length;
+    document.getElementById('streak-count').textContent  = data.my_streak;
+    document.getElementById('points-count').textContent  = data.my_points;
+    document.getElementById('streak-num').textContent    = data.my_streak;
+
+    renderExams(data.exams);
+    renderStreak(data.my_streak);
+    renderLeaderboard(data.leaderboard, data.my_points, myName);
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function renderExams(exams) {
+  const list = document.getElementById('exams-list');
+  if (!exams.length) {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:10px;">لا يوجد اختبارات مضافة بعد</div>';
+    return;
+  }
+  list.innerHTML = exams.map(e => {
+    let cls = 'days-green', label = `${e.days} يوم`;
+    if (e.days <= 3)  { cls = 'days-red';    label = `${e.days} أيام ⚠`; }
+    else if (e.days <= 7) { cls = 'days-orange'; label = `${e.days} أيام`; }
+    return `
+      <div class="countdown-item">
+        <div class="countdown-name">${e.name}</div>
+        <span class="days-badge ${cls}">${label}</span>
+      </div>`;
+  }).join('');
+  document.getElementById('exams-count').textContent = exams.length;
+}
+
+function renderStreak(streak) {
+  const days = ['س','أ','ث','ر','خ','ج','س'];
+  const today = new Date().getDay();
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    let cls = 's-empty';
+    if (i < streak && i < today) cls = 's-done';
+    if (i === today - 1)         cls = 's-today';
+    html += `<div class="s-dot ${cls}">${days[i]}</div>`;
+  }
+  document.getElementById('streak-dots').innerHTML = html;
+  if (streak > 0) {
+    document.getElementById('streak-tip').textContent =
+      `رائع! حافظ على سلسلتك — غداً تكسب 10 نقاط إضافية!`;
+  }
+}
+
+function renderLeaderboard(board, myPoints, myName) {
+  if (!board.length) {
+    document.getElementById('leaderboard-list').innerHTML =
+      '<div style="text-align:center;color:var(--muted);font-size:13px;padding:10px;">لا يوجد بيانات بعد — كن أول المتصدرين!</div>';
+    return;
+  }
+
+  maxPoints = board[0].points || 1;
+  const medals = ['🥇','🥈','🥉','4','5'];
+  const colors = [
+    'linear-gradient(135deg,var(--blue),var(--blue-mid))',
+    'linear-gradient(135deg,#64748B,#94A3B8)',
+    'linear-gradient(135deg,#B45309,#D97706)',
+    'linear-gradient(135deg,#16A34A,#22C55E)',
+    'linear-gradient(135deg,#7C3AED,#A78BFA)'
+  ];
+
+  document.getElementById('leaderboard-list').innerHTML = board.map((u, i) => {
+    const isMe = u.name === myName;
+    const pct  = Math.round((u.points / maxPoints) * 100);
+    return `
+      <div class="leader-item ${isMe ? 'me' : ''}">
+        <div class="leader-rank">${medals[i] || (i+1)}</div>
+        <div class="leader-avatar" style="background:${colors[i]}">${u.name[0]}</div>
+        <div class="leader-info">
+          <div class="leader-name">
+            ${u.name}
+            ${isMe ? '<span style="font-size:11px;color:var(--blue);font-weight:700;"> (أنت)</span>' : ''}
+          </div>
+        </div>
+        <div class="leader-pts-wrap">
+          <div class="leader-pts">${u.points}</div>
+          <div class="leader-pts-lbl">pts</div>
+        </div>
+        <div class="leader-bar-w">
+          <div class="leader-bar"><div class="leader-bar-f" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function addExam() {
+  const name = document.getElementById('exam-name').value.trim();
+  const date = document.getElementById('exam-date').value;
+  const msg  = document.getElementById('exam-msg');
+
+  if (!name || !date) {
+    msg.className = 'msg-box msg-error';
+    msg.textContent = '⚠ أدخل اسم المادة والتاريخ';
+    return;
+  }
+
+  const res  = await fetch('/add-exam', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ name, date })
+  });
+  const data = await res.json();
+  msg.className   = data.success ? 'msg-box msg-success' : 'msg-box msg-error';
+  msg.textContent = data.message;
+
+  if (data.success) {
+    document.getElementById('exam-name').value = '';
+    document.getElementById('exam-date').value = '';
+    loadDashboard();
+  }
+}
+
+async function generatePlan() {
+  const subject = document.getElementById('plan-subject').value.trim();
+  const dateVal = document.getElementById('plan-date').value;
+  const hours   = parseInt(document.getElementById('plan-hours').value) || 3;
+  if (!subject || !dateVal) return;
+
+  const examDate = new Date(dateVal);
+  const today    = new Date();
+  const daysLeft = Math.max(1, Math.ceil((examDate - today) / 86400000));
+  let html = '';
+  for (let i = 1; i <= Math.min(daysLeft, 5); i++) {
+    html += `
+      <div class="plan-day">
+        <div class="plan-lbl">يوم ${i}</div>
+        <div class="plan-bar"><div class="plan-fill" style="width:83%"></div></div>
+        <div class="plan-h">${hours} س</div>
+      </div>`;
+  }
+  document.getElementById('plan-output').innerHTML = html;
+
+  await fetch('/add-plan', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'
+  });
+  loadDashboard();
+}
+
+async function doCheckin() {
+  const btn = document.getElementById('checkin-btn');
+  const msg = document.getElementById('checkin-msg');
+  btn.disabled = true;
+
+  const res  = await fetch('/checkin', { method:'POST' });
+  const data = await res.json();
+  msg.className   = data.success ? 'msg-box msg-success' : 'msg-box msg-error';
+  msg.textContent = data.message;
+
+  if (data.success) {
+    loadDashboard();
+  } else {
+    btn.textContent = '✓ سجّلت يومك اليوم';
+  }
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

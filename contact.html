@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TD3N8RYNYE"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TD3N8RYNYE');
+</script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الحساب – StudyCalc</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 24px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid var(--gray-border);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      font-family: 'Cairo', sans-serif;
+      border: none;
+      cursor: pointer;
+      background: var(--gray);
+      color: var(--muted);
+      transition: .2s;
+    }
+    .tab-btn.active {
+      background: var(--blue);
+      color: white;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="toggleMenu()"></div>
+    <div class="logo">
+      <span class="logo-icon">🎓</span>
+      Study<span class="gold">Calc</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="{{ url_for('index') }}">الرئيسية</a></li>
+      <li><a href="{{ url_for('gpa') }}">حاسبة GPA</a></li>
+      <li><a href="{{ url_for('budget') }}">حاسبة الميزانية</a></li>
+      <li><a href="{{ url_for('study') }}">حاسبة الدراسة</a></li>
+      <li><a href="{{ url_for('contact') }}" class="active">الحساب</a></li>
+      <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+    </ul>
+
+    {% if session.get('user_name') %}
+<div style="display:flex;align-items:center;gap:8px;color:white;font-size:13px;font-weight:700;">
+  <a href="{{ url_for('profile') }}"
+     style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#f5c842);display:flex;align-items:center;justify-content:center;color:#1a1000;font-size:13px;font-weight:900;">
+      {{ session['user_name'][0] }}
+    </div>
+    <span style="color:white;">{{ session['user_name'] }}</span>
+  </a>
+  <a href="{{ url_for('logout') }}"
+     style="color:rgba(255,255,255,0.6);font-size:12px;text-decoration:none;margin-right:4px;">
+    خروج
+  </a>
+</div>
+{% else %}
+<a href="{{ url_for('contact') }}" class="nav-cta">سجّل الآن ✦</a>
+{% endif %}
+  </nav>
+
+  <section class="page-header">
+    <div class="hero-badge">✦ حسابك في StudyCalc</div>
+    <h1>سجّل أو <em>ادخل</em> حسابك</h1>
+    <p>احفظ نتائجك وتابع تطورك الأكاديمي</p>
+  </section>
+
+  <section class="form-section">
+    <div class="form-box">
+
+      <div class="form-info">
+        <h2>مميزات الحساب</h2>
+        <p>سجّل وتمتع بتجربة أكاديمية أذكى</p>
+        <ul class="benefit-list">
+          <li>حفظ نتائج GPA وتتبع تطورك</li>
+          <li>تنبيهات لمواعيد الاختبارات</li>
+          <li>تقارير أكاديمية شهرية</li>
+          <li>دعم مباشر من الفريق</li>
+        </ul>
+      </div>
+
+      <div class="form-fields">
+
+        <!-- التبويبين -->
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('register')">
+            إنشاء حساب
+          </button>
+          <button class="tab-btn" onclick="switchTab('login')">
+            تسجيل الدخول
+          </button>
+        </div>
+
+        <!-- تبويب إنشاء حساب -->
+        <div id="tab-register" class="tab-content active">
+          <div class="field-row">
+            <div class="field">
+              <label>الاسم الأول *</label>
+              <input type="text" id="first-name" class="field-input" placeholder="سارة">
+            </div>
+            <div class="field">
+              <label>اسم العائلة *</label>
+              <input type="text" id="last-name" class="field-input" placeholder="الأحمدي">
+            </div>
+          </div>
+          <div class="field">
+            <label>البريد الإلكتروني *</label>
+            <input type="email" id="email" class="field-input" placeholder="example@uqu.edu.sa">
+            <div class="error-hint" id="email-error"></div>
+          </div>
+          <div class="field">
+            <label>الجامعة</label>
+            <input type="text" id="university" class="field-input" placeholder="جامعة أم القرى">
+          </div>
+          <div class="field">
+            <label>كلمة المرور *</label>
+            <input type="password" id="password" class="field-input" placeholder="8 أحرف على الأقل">
+            <div class="error-hint" id="password-error"></div>
+          </div>
+          <div class="field">
+            <label>تأكيد كلمة المرور *</label>
+            <input type="password" id="confirm-password" class="field-input" placeholder="أعد كتابة كلمة المرور">
+            <div class="error-hint" id="confirm-error"></div>
+          </div>
+          <button class="submit-btn" onclick="submitForm()">إنشاء الحساب ✦</button>
+          <div id="success-msg" class="success-msg"></div>
+        </div>
+
+        <!-- تبويب تسجيل الدخول -->
+        <div id="tab-login" class="tab-content">
+          <div class="field">
+            <label>البريد الإلكتروني *</label>
+            <input type="email" id="login-email" class="field-input" placeholder="example@uqu.edu.sa">
+            <div class="error-hint" id="login-email-error"></div>
+          </div>
+          <div class="field">
+            <label>كلمة المرور *</label>
+            <input type="password" id="login-password" class="field-input" placeholder="أدخل كلمة المرور">
+            <div class="error-hint" id="login-password-error"></div>
+          </div>
+          <button class="submit-btn" onclick="submitLogin()">تسجيل الدخول ✦</button>
+          <div id="login-msg" class="success-msg"></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo">🎓 Study<span class="gold">Calc</span></div>
+        <p>منصة مجانية تساعد طلاب الجامعة على إدارة حياتهم الأكاديمية</p>
+      </div>
+      <div class="footer-col">
+        <h4>الأدوات</h4>
+        <a href="{{ url_for('gpa') }}">حاسبة GPA</a>
+        <a href="{{ url_for('budget') }}">حاسبة الميزانية</a>
+        <a href="{{ url_for('study') }}">حاسبة المذاكرة</a>
+      </div>
+   <div class="footer-col">
+  <h4>المنصة</h4>
+  <a href="{{ url_for('reach_us') }}">تواصل معنا</a>
+  <a href="{{ url_for('dashboard') }}">لوحة التحكم</a>
+  <a href="{{ url_for('quiz') }}">اختبر نفسك</a>
+</div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 StudyCalc – جميع الحقوق محفوظة</p>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

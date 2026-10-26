@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اكتشف نمط دراستك – StudyCalc</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.quiz-section {
+  max-width: 680px;
+  margin: 40px auto;
+  padding: 0 20px 60px;
+}
+.quiz-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 36px;
+  margin-bottom: 20px;
+}
+.quiz-progress {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.progress-dot {
+  flex: 1;
+  height: 5px;
+  background: var(--gray-border);
+  border-radius: 3px;
+  transition: .3s;
+}
+.progress-dot.done { background: var(--blue); }
+.progress-dot.active { background: var(--gold); }
+
+.question-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.question-text {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.options { display: flex; flex-direction: column; gap: 12px; }
+.option-btn {
+  background: var(--gray);
+  border: 2px solid var(--gray-border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  font-family: 'Cairo', sans-serif;
+  cursor: pointer;
+  text-align: right;
+  transition: .2s;
+}
+.option-btn:hover {
+  border-color: var(--blue);
+  background: var(--blue-light);
+  color: var(--blue);
+}
+.option-btn.selected {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: white;
+}
+
+/* RESULT */
+.result-card {
+  background: linear-gradient(145deg, #0D1B40, var(--blue));
+  border-radius: 20px;
+  padding: 40px 36px;
+  text-align: center;
+  display: none;
+}
+.result-emoji { font-size: 56px; margin-bottom: 16px; }
+.result-type {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.result-desc {
+  font-size: 15px;
+  color: rgba(255,255,255,0.80);
+  line-height: 1.8;
+  margin-bottom: 28px;
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.result-tip {
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 24px;
+}
+.result-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-retry {
+  background: rgba(255,255,255,0.12);
+  color: white;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
+  padding: 12px 28px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Cairo', sans-serif;
+  cursor: pointer;
+}
+
+/* POLL RESULTS */
+.poll-section {
+  background: white;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 28px 32px;
+  margin-top: 20px;
+}
+.poll-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+.poll-bar-row {
+  margin-bottom: 14px;
+}
+.poll-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+.poll-bar-track {
+  height: 10px;
+  background: var(--gray-border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.poll-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--blue-mid), var(--blue));
+  transition: width .6s ease;
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="toggleMenu()"></div>
+  <div class="logo">
+    <span class="logo-icon">🎓</span>
+    Study<span class="gold">Calc</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="{{ url_for('index') }}">الرئيسية</a></li>
+    <li><a href="{{ url_for('gpa') }}">حاسبة GPA</a></li>
+    <li><a href="{{ url_for('budget') }}">حاسبة الميزانية</a></li>
+    <li><a href="{{ url_for('study') }}">حاسبة الدراسة</a></li>
+    <a href="{{ url_for('reach_us') }}">تواصل معنا</a>
+    <li><a href="{{ url_for('dashboard') }}">لوحة التحكم</a></li>
+    <li><a href="{{ url_for('quiz') }}" class="active">اختبر نفسك</a></li>
+  </ul>
+  {% if session.get('user_name') %}
+  <div style="display:flex;align-items:center;gap:8px;color:white;font-size:13px;font-weight:700;">
+    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#f5c842);display:flex;align-items:center;justify-content:center;color:#1a1000;font-size:13px;font-weight:900;">
+      {{ session['user_name'][0] }}
+    </div>
+    <span>{{ session['user_name'] }}</span>
+    <a href="{{ url_for('logout') }}" style="color:rgba(255,255,255,0.6);font-size:12px;text-decoration:none;">خروج</a>
+  </div>
+  {% else %}
+  <a href="{{ url_for('contact') }}" class="nav-cta">سجّل الآن ✦</a>
+  {% endif %}
+</nav>
+
+<section class="page-header" style="background:linear-gradient(145deg,#0D1B40,var(--blue));padding:40px;text-align:center;">
+  <div class="hero-badge" style="display:inline-block;background:rgba(212,160,23,0.18);border:1px solid rgba(212,160,23,0.45);color:var(--gold);padding:5px 18px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:14px;">
+    اكتشف نمط دراستك
+  </div>
+  <h1 style="color:white;font-size:32px;font-weight:900;margin-bottom:10px;">
+    ما هو <span style="color:var(--gold);">نوع الطالب</span> الذي أنت عليه؟
+  </h1>
+  <p style="color:rgba(255,255,255,0.72);font-size:14px;">
+    4 أسئلة سريعة — النتيجة فورية
+  </p>
+</section>
+
+<div class="quiz-section">
+
+  <!-- QUIZ CARD -->
+  <div class="quiz-card" id="quiz-card">
+    <div class="quiz-progress" id="progress-bar">
+      <div class="progress-dot active"></div>
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
+    </div>
+    <div class="question-num" id="q-num">سؤال 1 من 4</div>
+    <div class="question-text" id="q-text"></div>
+    <div class="options" id="q-options"></div>
+  </div>
+
+  <!-- RESULT CARD -->
+  <div class="result-card" id="result-card">
+    <div class="result-emoji" id="r-emoji"></div>
+    <div class="result-type" id="r-type"></div>
+    <div class="result-desc" id="r-desc"></div>
+    <div class="result-tip" id="r-tip"></div>
+    <div class="result-btns">
+      <button class="btn-retry" onclick="restartQuiz()">أعد الاختبار</button>
+      <a href="{{ url_for('dashboard') }}" class="btn-gold"
+         style="padding:12px 28px;border-radius:12px;font-size:14px;font-weight:800;text-decoration:none;">
+        افتح لوحة التحكم ←
+      </a>
+    </div>
+  </div>
+
+  <!-- POLL RESULTS -->
+  <div class="poll-section" id="poll-section" style="display:none;">
+    <div class="poll-title">نتائج الاستطلاع — ماذا يسبب الضغط للطلاب؟</div>
+    <div id="poll-bars"></div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="logo">🎓 Study<span class="gold">Calc</span></div>
+      <p>منصة مجانية تساعد طلاب الجامعة على إدارة حياتهم الأكاديمية</p>
+    </div>
+    <div class="footer-col">
+      <h4>الأدوات</h4>
+      <a href="{{ url_for('gpa') }}">حاسبة GPA</a>
+      <a href="{{ url_for('budget') }}">حاسبة الميزانية</a>
+      <a href="{{ url_for('study') }}">حاسبة المذاكرة</a>
+    </div>
+    <div class="footer-col">
+      <h4>المنصة</h4>
+      <a href="{{ url_for('reach_us') }}">تواصل معنا</a>
+      <a href="{{ url_for('dashboard') }}">لوحة التحكم</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 StudyCalc – جميع الحقوق محفوظة</p>
+  </div>
+</footer>
+
+<script>
+const questions = [
+  {
+    text: 'كم ساعة تذاكر يومياً في المتوسط؟',
+    options: [
+      { label: 'أقل من ساعة',     score: 1 },
+      { label: 'ساعة إلى ساعتين', score: 2 },
+      { label: '3 إلى 4 ساعات',   score: 3 },
+      { label: 'أكثر من 4 ساعات', score: 4 }
+    ]
+  },
+  {
+    text: 'أكثر شيء يسبب لك ضغطاً أكاديمياً؟',
+    options: [
+      { label: 'الاختبارات',     stress: 'exams' },
+      { label: 'تنظيم الوقت',   stress: 'time' },
+      { label: 'الميزانية',      stress: 'budget' },
+      { label: 'المعدل',         stress: 'gpa' }
+    ]
+  },
+  {
+    text: 'كيف تخطط عادةً للاختبارات؟',
+    options: [
+      { label: 'أذاكر في اللحظة الأخيرة',   score: 1 },
+      { label: 'أبدأ قبل يومين',             score: 2 },
+      { label: 'أخطط لأسبوع مسبقاً',        score: 3 },
+      { label: 'عندي جدول منظم من بداية الفصل', score: 4 }
+    ]
+  },
+  {
+    text: 'ما الذي يساعدك على الدراسة أكثر؟',
+    options: [
+      { label: 'الجداول والتنظيم',  score: 4 },
+      { label: 'مراجعة مع زملاء',   score: 3 },
+      { label: 'المكافآت الشخصية',  score: 2 },
+      { label: 'الضغط وقت الاختبار', score: 1 }
+    ]
+  }
+];
+
+const results = [
+  {
+    min: 4, max: 7,
+    emoji: '😅',
+    type: 'The Last-Minute Learner',
+    typeAr: 'مذاكر اللحظة الأخيرة',
+    desc: 'تعتمد على الأدرينالين وقت الاختبار! موهوب لكن تحتاج تنظيماً أكثر لتحقق إمكاناتك الحقيقية.',
+    tip: 'جرّب حاسبة المذاكرة لدينا — ضع جدولاً بسيطاً وابدأ مبكراً'
+  },
+  {
+    min: 8, max: 11,
+    emoji: '📚',
+    type: 'The Steady Learner',
+    typeAr: 'الطالب المنتظم',
+    desc: 'متوازن في دراستك! لا تبالغ ولا تقصّر. خطوة أكثر في التنظيم ستفرق كثيراً.',
+    tip: 'استخدم العد التنازلي للاختبارات في لوحة التحكم لتبقى على المسار'
+  },
+  {
+    min: 12, max: 14,
+    emoji: '🎯',
+    type: 'The Strategic Planner',
+    typeAr: 'المخطط الاستراتيجي',
+    desc: 'أنت طالب يعمل بذكاء لا بجهد فقط! تخطط مسبقاً وتعرف أولوياتك.',
+    tip: 'لوحة المتصدرين تنتظرك — سجّل يومك واكسب نقاطك'
+  },
+  {
+    min: 15, max: 16,
+    emoji: '🚀',
+    type: 'The Academic Achiever',
+    typeAr: 'المتفوق الأكاديمي',
+    desc: 'مثالي في التنظيم والالتزام! أنت من يحتذى به في القسم. استمر وشارك تجربتك.',
+    tip: 'أنت في قمة لوحة المتصدرين — ساعد زملاءك بمشاركة منصتنا'
+  }
+];
+
+let current = 0;
+let totalScore = 0;
+let stressAnswer = '';
+const answers = [];
+
+function renderQuestion() {
+  const q = questions[current];
+  document.getElementById('q-num').textContent = `سؤال ${current + 1} من ${questions.length}`;
+  document.getElementById('q-text').textContent = q.text;
+
+  const dots = document.querySelectorAll('.progress-dot');
+  dots.forEach((d, i) => {
+    d.className = 'progress-dot';
+    if (i < current) d.classList.add('done');
+    if (i === current) d.classList.add('active');
+  });
+
+  document.getElementById('q-options').innerHTML = q.options.map((opt, i) =>
+    `<button class="option-btn" onclick="selectOption(${i})">${opt.label}</button>`
+  ).join('');
+}
+
+function selectOption(i) {
+  const q = questions[current];
+  const opt = q.options[i];
+
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.option-btn')[i].classList.add('selected');
+
+  if (opt.score) totalScore += opt.score;
+  if (opt.stress) stressAnswer = opt.stress;
+  answers.push(i);
+
+  setTimeout(() => {
+    current++;
+    if (current < questions.length) {
+      renderQuestion();
+    } else {
+      showResult();
+    }
+  }, 350);
+}
+
+function showResult() {
+  document.getElementById('quiz-card').style.display = 'none';
+
+  const result = results.find(r => totalScore >= r.min && totalScore <= r.max)
+                 || results[results.length - 1];
+
+  document.getElementById('r-emoji').textContent = result.emoji;
+  document.getElementById('r-type').textContent  = `${result.typeAr}`;
+  document.getElementById('r-desc').textContent  = result.desc;
+  document.getElementById('r-tip').textContent   = '💡 ' + result.tip;
+
+  document.getElementById('result-card').style.display = 'block';
+
+  // Poll results
+  showPoll();
+
+  // Google Analytics event
+  if (typeof gtag !== 'undefined') {
+    gtag('event', 'quiz_completed', {
+      'result_type': result.type,
+      'stress_factor': stressAnswer
+    });
+  }
+}
+
+function showPoll() {
+  const pollData = {
+    'الاختبارات':   45,
+    'تنظيم الوقت':  30,
+    'المعدل':       15,
+    'الميزانية':    10
+  };
+
+  const maxVal = Math.max(...Object.values(pollData));
+  let html = '';
+  for (const [label, val] of Object.entries(pollData)) {
+    html += `
+      <div class="poll-bar-row">
+        <div class="poll-bar-label">
+          <span>${label}</span>
+          <span>${val}%</span>
+        </div>
+        <div class="poll-bar-track">
+          <div class="poll-bar-fill" style="width:${(val/maxVal)*100}%"></div>
+        </div>
+      </div>`;
+  }
+  document.getElementById('poll-bars').innerHTML = html;
+  document.getElementById('poll-section').style.display = 'block';
+}
+
+function restartQuiz() {
+  current = 0;
+  totalScore = 0;
+  stressAnswer = '';
+  answers.length = 0;
+
+  document.getElementById('result-card').style.display  = 'none';
+  document.getElementById('poll-section').style.display = 'none';
+  document.getElementById('quiz-card').style.display    = 'block';
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
